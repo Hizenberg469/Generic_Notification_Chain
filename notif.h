@@ -15,14 +15,13 @@
  *
  * =====================================================================================
  */
-
 #ifndef __NOTIF_CHAIN_
 #define __NOTIF_CHAIN_
 
 #include <stddef.h>  /* for size_t */
-#include "utils.h"
-#include "gluethread/glthread.h"
-
+#include "glthread/glthread.h"
+#include <stdint.h>
+#include <stdbool.h>
 #define MAX_NOTIF_KEY_SIZE	64
 
 typedef enum{
@@ -57,14 +56,14 @@ nfc_get_str_op_code(nfc_op_t nfc_op_code) {
 }
 
 
-typedef void (*nfc_app_cb)(void *, size_t, char *, uint32_t);
+typedef void (*nfc_app_cb)(void *, size_t, nfc_op_t, uint32_t);
 
 typedef struct notif_chain_elem_{
 
     char key[MAX_NOTIF_KEY_SIZE];
     size_t key_size;
 	uint32_t subs_id;
-    bool_t is_key_set;
+    bool is_key_set;
     nfc_app_cb app_cb;
     glthread_t glue;
 } notif_chain_elem_t;

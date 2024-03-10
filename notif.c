@@ -44,6 +44,20 @@ nfc_register_notif_chain(notif_chain_t *nfc,
 }
 
 void
+nfc_delete_all_nfce(notif_chain_t *nfc){
+
+	glthread_t *curr;
+	notif_chain_elem_t *nfce;
+	
+	ITERATE_GLTHREAD_BEGIN(&nfc->notif_chain_head, curr){
+
+		nfce = glthread_glue_to_notif_chain_elem(curr);
+		remove_glthread(&nfce->glue);
+		free(nfce);	
+	} ITERATE_GLTHREAD_END(&nfc->notif_chain_head, curr);
+}
+
+void
 nfc_invoke_notif_chain(notif_chain_t *nfc,
 					   void *arg, size_t arg_size,
 					   char *key, size_t key_size,
@@ -58,39 +72,21 @@ nfc_invoke_notif_chain(notif_chain_t *nfc,
 
 	assert(key_size <= MAX_NOTIF_KEY_SIZE);
 
-    char *nfc_op_s = nfc_get_str_op_code(nfc_op_code);
-
 	ITERATE_GLTHREAD_BEGIN(&nfc->notif_chain_head, curr){
 
 		nfce = glthread_glue_to_notif_chain_elem(curr);
 
-		if(!(key && key_size &&
+		if(!(key && key_size && 
 			 nfce->is_key_set && (key_size == nfce->key_size))){
-
-				nfce->app_cb(arg, arg_size, nfc_op_s, nfce->subs_id);
+				
+				nfce->app_cb(arg, arg_size, nfc_op_code, nfce->subs_id);
 		}
 		else {
-
+			
 			if(memcmp(key, nfce->key, key_size) == 0) {
 
-				nfce->app_cb(arg, arg_size, nfc_op_s, nfce->subs_id);
+				nfce->app_cb(arg, arg_size, nfc_op_code, nfce->subs_id);
 			}
 		}
 	}ITERATE_GLTHREAD_END(&nfc->notif_chain_head, curr);
-}
-
-void
-nfc_delete_all_nfce(notif_chain_t *nfc){
-
-    glthread *curr;
-    notif_chain_elem_t *nfc_e;
-
-    ITERATE_GLTHREAD_BEGIN(&nfc->notif_chain_head,curr){
-        
-        nfc_e = glthread_glue_to_notif_chain_elem(curr);
-        remove_glthread(&nfc_e->glue);
-        free(nfc_e);
-    }ITERATE_GLTHREAD_END(&nfc->notif_chain_head,curr);
-
-
 }
